@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import './ProductDetails.css';
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+   
+    const loggedInUser = localStorage.getItem('loggedInUser');
+    if (!loggedInUser) {
+     
+      navigate('/login');
+      return;
+    }
+
     fetch(`https://dummyjson.com/products/${id}`)
       .then(res => res.json())
       .then(data => {

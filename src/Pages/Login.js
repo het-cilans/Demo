@@ -10,7 +10,7 @@ const Login = () => {
 
  
   const mockUsers = [
-    { email: 'user1@example.com', password: 'password123'},
+    { email: 'hetshah@gmail.com', password: 'het@111'},
     { email: 'user2@example.com', password: 'password456'},
     { email: 'admin@example.com', password: 'admin123'},
   ];
@@ -18,14 +18,12 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-
     const user = mockUsers.find(
       (u) => u.email === email && u.password === password
     );
 
     if (user) {
       localStorage.setItem('loggedInUser', JSON.stringify(user));
-      alert(`Welcome back, ${user.name}!`);
       navigate('/');
     } else {
       setError('Invalid email or password');
