@@ -40,6 +40,7 @@ const Home = () => {
       <header className="home-header">
         <div className="header-content">
           <h2>Home</h2>
+          <Link to="/login" className="login-btn">Login</Link>
         </div>
       </header>
 

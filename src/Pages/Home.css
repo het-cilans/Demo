@@ -14,9 +14,30 @@
   border-radius: 8px;
 }
 
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .header-content h2 {
   color: white;
   margin: 0;
+  cursor:default;
+}
+
+.login-btn {
+  background-color: #4a5568;
+  color: white;
+  padding: 8px 20px;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.login-btn:hover {
+  background-color: #718096;
 }
 
 .products-grid {
