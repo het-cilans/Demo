@@ -1,80 +1,89 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './Home.css'
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useProducts } from '../hooks/useProducts';
+import { ProductCard, Loader, ErrorMessage } from '../components';
+import './Home.css';
 
 const Home = () => {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
+  const {
+    products,
+    loading,
+    error,
+    total,
+    currentPage,
+    totalPages,
+    limit,
+    goToNextPage,
+    goToPrevPage,
+    refresh,
+  } = useProducts(10);
 
-    useEffect(() => {
-        const loggedInUser = localStorage.getItem('loggedInUser');
-        if (loggedInUser) {
-            setIsLoggedIn(true);
-        }
-    }, []);
+  const productList = useMemo(() => {
+    return products.map((product) => (
+      <ProductCard key={product.id} product={product} />
+    ));
+  }, [products]);
 
-    useEffect(() => {
-        fetch('https://dummyjson.com/products')
-            .then(res => res.json())
-            .then(data => {
-                setProducts(data.products);
-                setLoading(false);
-            })
-            .catch(err => {
-                setError(err.message);
-                setLoading(false);
-            });
-    }, []);
+  const startItem = (currentPage - 1) * limit + 1;
+  const endItem = Math.min(currentPage * limit, total);
 
-    const refresh = () => {
-        setLoading(true);
-        setError(null);
-        fetch('https://dummyjson.com/products')
-            .then(res => res.json())
-            .then(data => {
-                setProducts(data.products);
-                setLoading(false);
-            })
-            .catch(err => {
-                setError(err.message);
-                setLoading(false);
-            });
-    };
-
-    return (
+  return (
     <div className="home-container">
       <header className="home-header">
         <div className="header-content">
           <h2>Home</h2>
-          <Link to="/login" className="login-btn">Login</Link>
+          {isAuthenticated ? (
+            <div className="user-info">
+             
+              <button onClick={logout} className="logout-btn">Logout</button>
+            </div>
+          ) : (
+            <Link to="/login" className="login-btn">Login</Link>
+          )}
         </div>
       </header>
 
       <main className="home-main">
-        {loading && <div className="loader">Loading products...</div>}
+        {loading && <Loader message="Loading products..." />}
         
-        {error && <div className="error-message" onClick={refresh}>Error: {error} (Click to retry)</div>}
+        {error && <ErrorMessage message={`Error: ${error}`} onRetry={refresh} />}
         
         {!loading && !error && products.length === 0 && (
-          <div className="error-message">No products found</div>
+          <ErrorMessage message="No products found" onRetry={refresh} />
         )}
         
         {!loading && !error && products.length > 0 && (
           <>
+            <div className="pagination-info">
+              Showing {startItem}-{endItem} of {total} products
+            </div>
+            
             <div className="products-grid">
-              {products.map((product) => (
-                <div key={product.id} className="product-card">
-                  <img src={product.thumbnail} alt={product.title} />
-                  <h3>{product.title}</h3>
-                  <p>{product.description}</p>
-                  <div className="product-price">${product.price}</div>
-                  <div className="product-rating">Rating: {product.rating}</div>
-                  <Link to={`/product/${product.id}`} className="view-details-btn">View Details</Link>
-                </div>
-              ))}
+              {productList}
+            </div>
+            
+            <div className="pagination-controls">
+              <button 
+                className="pagination-btn"
+                onClick={goToPrevPage}
+                disabled={currentPage === 1 || loading}
+              >
+                Previous
+              </button>
+              
+              <span className="page-indicator">
+                Page {currentPage} of {totalPages}
+              </span>
+              
+              <button 
+                className="pagination-btn"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages || loading}
+              >
+                Next
+              </button>
             </div>
           </>
         )}

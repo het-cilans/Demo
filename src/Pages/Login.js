@@ -1,32 +1,43 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const emailInputRef = useRef(null);
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
 
- 
-  const mockUsers = [
-    { email: 'hetshah@gmail.com', password: 'het@111'},
-    { email: 'user2@example.com', password: 'password456'},
-    { email: 'admin@example.com', password: 'admin123'},
-  ];
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    const user = mockUsers.find(
-      (u) => u.email === email && u.password === password
-    );
 
-    if (user) {
-      localStorage.setItem('loggedInUser', JSON.stringify(user));
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    const result = login(email, password);
+
+    if (result.success) {
       navigate('/');
     } else {
-      setError('Invalid email or password');
+      setError(result.error || 'Invalid email or password');
     }
   };
 
@@ -38,6 +49,7 @@ const Login = () => {
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
+              ref={emailInputRef}
               type="email"
               id="email"
               value={email}
@@ -60,6 +72,7 @@ const Login = () => {
           {error && <div className="error-message">{error}</div>}
           <button type="submit" className="login-submit-btn">Login</button>
         </form>
+        
         
        
         <p className="back-home">

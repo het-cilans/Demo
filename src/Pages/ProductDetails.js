@@ -1,25 +1,37 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import { fetchProductById } from '../services/productService';
+import { Loader, ErrorMessage } from '../components';
 import './ProductDetails.css';
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-   
-    const loggedInUser = localStorage.getItem('loggedInUser');
-    if (!loggedInUser) {
-     
-      navigate('/login');
-      return;
-    }
+    const loadProduct = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const data = await fetchProductById(id);
+        setProduct(data);
+      } catch (err) {
+        setError(err.message || 'Failed to load product');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    fetch(`https://dummyjson.com/products/${id}`)
-      .then(res => res.json())
+    loadProduct();
+  }, [id]);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    fetchProductById(id)
       .then(data => {
         setProduct(data);
         setLoading(false);
@@ -28,11 +40,11 @@ const ProductDetails = () => {
         setError(err.message);
         setLoading(false);
       });
-  }, [id]);
+  };
 
-  if (loading) return <div className="loader">Loading product details...</div>;
-  if (error) return <div className="error-message">Error: {error}</div>;
-  if (!product) return <div className="error-message">Product not found</div>;
+  if (loading) return <Loader message="Loading product details..." />;
+  if (error) return <ErrorMessage message={`Error: ${error}`} onRetry={handleRetry} />;
+  if (!product) return <ErrorMessage message="Product not found" />;
 
   return (
     <div className="product-details-container">
